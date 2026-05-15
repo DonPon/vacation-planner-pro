@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}FamilyPlanner - Stress-free Family Vacation Planning{% endblock %}
+
+{% block head %}
+<style>
+    .hero-gradient {
+        background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent),
+                    radial-gradient(circle at bottom left, rgba(99, 102, 241, 0.15), transparent);
+    }
+    .pricing-card {
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .pricing-card:hover {
+        transform: translateY(-10px);
+        border-color: rgba(59, 130, 246, 0.5);
+        box-shadow: 0 20px 40px -20px rgba(59, 130, 246, 0.3);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-gradient min-h-screen -m-8 p-8 flex flex-col items-center">
+    <!-- Navbar (Landing specific) -->
+    <nav class="w-full max-w-7xl flex justify-between items-center py-6 px-4 mb-16">
+        <h1 class="text-3xl font-black bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+            FamilyPlanner
+        </h1>
+        <div class="flex items-center space-x-8">
+            <a href="/login" class="text-sm font-bold text-slate-400 hover:text-white transition-colors">Sign In</a>
+            <a href="/register" class="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-white text-sm font-bold transition-all">
+                Get Started
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="text-center max-w-4xl px-4 space-y-8 mb-32 pt-16">
+        <div class="inline-flex items-center space-x-2 px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-full mb-4">
+            <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+            </span>
+            <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest">New: Zurich Canton Holidays Added</span>
+        </div>
+        <h2 class="text-6xl md:text-8xl font-black text-white tracking-tighter leading-[0.9]">
+            Plan Family Vacations <span class="text-slate-600">without the chaos.</span>
+        </h2>
+        <p class="text-xl text-slate-400 font-medium max-w-2xl mx-auto leading-relaxed">
+            The ultimate timeline for families. Sync schedules, track holiday balances, and visual planning across 50+ countries.
+        </p>
+        <div class="pt-8 flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-6">
+            <a href="/register" class="px-10 py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-[2rem] font-bold text-lg transition-all shadow-2xl shadow-blue-500/20 hover:scale-105 active:scale-95">
+                Start Planning Now
+            </a>
+            <p class="text-slate-500 font-bold text-sm italic">Just $5/month. Cancel anytime.</p>
+        </div>
+    </div>
+
+    <!-- Features Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl px-4 mb-32">
+        <div class="glass p-8 rounded-[2.5rem] space-y-4">
+            <div class="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-400">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            </div>
+            <h3 class="text-2xl font-black text-white">Single Timeline</h3>
+            <p class="text-slate-400 font-medium leading-relaxed">See everyone's plans on one beautiful line. No more jumping between calendars.</p>
+        </div>
+        <div class="glass p-8 rounded-[2.5rem] space-y-4">
+            <div class="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-400">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"></path></svg>
+            </div>
+            <h3 class="text-2xl font-black text-white">Balance Tracking</h3>
+            <p class="text-slate-400 font-medium leading-relaxed">Instantly see remaining vacation days for every member of the family.</p>
+        </div>
+        <div class="glass p-8 rounded-[2.5rem] space-y-4">
+            <div class="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-400">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <h3 class="text-2xl font-black text-white">Global Holidays</h3>
+            <p class="text-slate-400 font-medium leading-relaxed">Automatic fetching of national and regional holidays for over 50 countries.</p>
+        </div>
+    </div>
+
+    <!-- Pricing Section -->
+    <div class="w-full max-w-4xl px-4 text-center mb-32">
+        <h3 class="text-4xl font-black text-white mb-12 tracking-tight text-center">Simple Pricing</h3>
+        
+        <div class="pricing-card glass p-12 rounded-[3rem] border-2 border-blue-500/20 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-8">
+                <span class="px-4 py-1.5 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full">Most Popular</span>
+            </div>
+            
+            <div class="space-y-6">
+                <h4 class="text-xl font-bold text-slate-400 uppercase tracking-[0.2em]">The Family Pro Plan</h4>
+                <div class="flex items-baseline justify-center space-x-2">
+                    <span class="text-7xl font-black text-white">$5</span>
+                    <span class="text-2xl font-bold text-slate-500">/ month</span>
+                </div>
+                
+                <div class="py-12 grid grid-cols-1 md:grid-cols-2 gap-6 text-left max-w-xl mx-auto">
+                    <div class="flex items-center space-x-3 text-slate-300">
+                        <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                        <span class="font-bold">Unlimited Family Members</span>
+                    </div>
+                    <div class="flex items-center space-x-3 text-slate-300">
+                        <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                        <span class="font-bold">Global Holiday Database</span>
+                    </div>
+                    <div class="flex items-center space-x-3 text-slate-300">
+                        <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                        <span class="font-bold">Custom Theme Colors</span>
+                    </div>
+                    <div class="flex items-center space-x-3 text-slate-300">
+                        <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                        <span class="font-bold">Shared Timeline View</span>
+                    </div>
+                </div>
+
+                <a href="/register" class="block w-full py-6 bg-blue-600 hover:bg-blue-700 text-white rounded-[2rem] font-black text-xl transition-all shadow-xl shadow-blue-500/20">
+                    Get Started with Pro
+                </a>
+                <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">30-day money back guarantee</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="w-full max-w-7xl py-12 px-4 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-slate-500 font-medium">
+        <p>© 2026 FamilyPlanner. All rights reserved.</p>
+        <div class="flex space-x-8 mt-6 md:mt-0">
+            <a href="#" class="hover:text-white transition-colors">Privacy</a>
+            <a href="#" class="hover:text-white transition-colors">Terms</a>
+            <a href="#" class="hover:text-white transition-colors">Contact</a>
+        </div>
+    </footer>
+</div>
+{% endblock %}

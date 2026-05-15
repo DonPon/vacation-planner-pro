@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - FamilyPlanner{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <header class="flex justify-between items-center">
+        <div>
+            <h1 class="text-4xl font-black text-white tracking-tighter">Dashboard</h1>
+            <p class="text-slate-400 font-medium mt-1">Family overview for {{ family.name }}.</p>
+        </div>
+        <div class="flex space-x-3">
+            <button hx-get="/family/add-member" hx-target="#modal-content" class="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-slate-300 font-bold transition-all flex items-center shadow-sm">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                Add Member
+            </button>
+            <button hx-get="/calendar/add-vacation" hx-target="#modal-content" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-blue-500/30 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                Plan Trip
+            </button>
+        </div>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="glass p-6 rounded-[2rem]">
+            <p class="text-xs font-black text-slate-500 uppercase tracking-widest">Family Members</p>
+            <h3 class="text-4xl font-black text-white mt-1">{{ total_members }}</h3>
+        </div>
+        <div class="glass p-6 rounded-[2rem]">
+            <p class="text-xs font-black text-slate-500 uppercase tracking-widest">Upcoming Trips</p>
+            <h3 class="text-4xl font-black text-white mt-1">{{ upcoming_vacations|length }}</h3>
+        </div>
+        <div class="glass p-6 rounded-[2rem] lg:col-span-2">
+            <p class="text-xs font-black text-slate-500 uppercase tracking-widest">Avg. Remaining Balance</p>
+            {% set total_bal = namespace(value=0) %}
+            <h3 class="text-4xl font-black text-white mt-1">
+                {% if total_members > 0 %}
+                    {% for m in members %}{% set total_bal.value = total_bal.value + m.remaining_balance %}{% endfor %}
+                    {{ (total_bal.value / total_members)|round(1) }}
+                {% else %}
+                    0
+                {% endif %}
+                <span class="text-lg font-bold text-slate-500">days</span>
+            </h3>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Next Trips -->
+        <div class="lg:col-span-2 space-y-6">
+            <h2 class="text-2xl font-black text-white tracking-tight px-2">Next Trips</h2>
+            <div class="space-y-3">
+                {% for vac in upcoming_vacations %}
+                <div class="glass p-5 rounded-2xl flex items-center group hover:border-white/20 transition-all cursor-pointer" onclick="window.location.href='/family/{{ vac.member.id }}'">
+                    <div class="w-10 h-10 rounded-full flex-shrink-0 mr-4 border-2 border-slate-700 shadow-sm" style="background-color: {{ vac.member.color }}"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-bold text-white">{{ vac.member.name }}</p>
+                        <p class="text-lg font-black text-white/90">{{ vac.title or "Family Trip" }}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs font-black text-blue-400 uppercase tracking-widest">{{ vac.start_date.strftime('%b %d') }}</p>
+                        <p class="text-[10px] font-bold text-slate-500">{{ (vac.start_date - date.today()).days }} days away</p>
+                    </div>
+                </div>
+                {% else %}
+                <div class="glass p-12 rounded-[2rem] text-center border-dashed border-2 border-white/5">
+                    <p class="text-slate-500 font-bold">No upcoming trips. Time to plan something!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Quick Access -->
+        <div class="space-y-6">
+            <h2 class="text-2xl font-black text-white tracking-tight px-2">Family</h2>
+            <div class="glass rounded-[2.5rem] overflow-hidden">
+                <table class="w-full text-left">
+                    <tbody class="divide-y divide-white/5">
+                        {% for m in members %}
+                        <tr class="hover:bg-white/5 transition-all group cursor-pointer" onclick="window.location.href='/family/{{ m.id }}'">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center">
+                                    <div class="w-2 h-2 rounded-full mr-3" style="background-color: {{ m.color }}"></div>
+                                    <span class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">{{ m.name }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <span class="text-xs font-black px-2 py-1 rounded-lg bg-white/5 text-slate-400 group-hover:text-blue-400 transition-colors">{{ m.remaining_balance|int }}d left</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

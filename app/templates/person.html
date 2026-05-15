@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}{{ member.name }} - FamilyPlanner{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <header class="flex justify-between items-center">
+        <div class="flex items-center">
+            <a href="/family" class="mr-4 p-2 hover:bg-white/10 rounded-xl transition-all">
+                <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            </a>
+            <div class="flex items-center">
+                <div class="w-12 h-12 rounded-full mr-4 border-4 border-slate-800 shadow-lg" style="background-color: {{ member.color }}"></div>
+                <div>
+                    <h1 class="text-3xl font-extrabold text-white tracking-tight">{{ member.name }}</h1>
+                    <p class="text-slate-400 font-medium">{{ member.country }}{% if member.subdivision %}-{{ member.subdivision }}{% endif %}</p>
+                </div>
+            </div>
+        </div>
+        <button hx-get="/calendar/add-vacation?member_id={{ member.id }}" hx-target="#modal-content" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-blue-500/30 flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+            Plan Trip
+        </button>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Balance Card -->
+        <div class="glass p-8 rounded-[2rem] flex flex-col justify-center items-center text-center">
+            {% set percent = (member.remaining_balance / member.vacation_allowance * 100)|round %}
+            <div class="relative w-40 h-40 mb-6">
+                <svg class="w-full h-full transform -rotate-90">
+                    <circle cx="80" cy="80" r="70" stroke="currentColor" stroke-width="12" fill="transparent" class="text-white/5" />
+                    <circle cx="80" cy="80" r="70" stroke="currentColor" stroke-width="12" fill="transparent" 
+                            stroke-dasharray="440" stroke-dashoffset="{{ 440 - (percent / 100 * 440) }}"
+                            class="text-blue-500 transition-all duration-1000 ease-out" stroke-linecap="round" />
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                    <span class="text-5xl font-black text-white tracking-tighter">{{ member.remaining_balance|int }}</span>
+                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Days Left</span>
+                </div>
+            </div>
+            <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">Out of {{ member.vacation_allowance|int }} total</p>
+        </div>
+
+        <!-- Trips List -->
+        <div class="lg:col-span-2 space-y-4">
+            <h2 class="text-xl font-black text-white px-2">Planned Trips</h2>
+            <div class="space-y-3">
+                {% for vac in member.vacations|sort(attribute='start_date', reverse=True) %}
+                <div class="glass p-5 rounded-2xl flex items-center justify-between group">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mr-4 text-blue-400">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <div>
+                            <p class="font-bold text-white">{{ vac.title or "Family Trip" }}</p>
+                            <p class="text-xs font-medium text-slate-500">{{ vac.start_date.strftime('%b %d') }} - {{ vac.end_date.strftime('%b %d, %Y') }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="text-right mr-4">
+                            <p class="text-lg font-black text-white">{{ vac.business_days_spent|int }}</p>
+                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Days</p>
+                        </div>
+                        <button hx-delete="/calendar/vacation/{{ vac.id }}" hx-confirm="Delete this trip?" hx-target="closest .glass" hx-swap="outerHTML" class="p-2 text-slate-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                {% else %}
+                <div class="glass p-12 rounded-[2rem] text-center border-dashed">
+                    <p class="text-slate-500 font-bold">No trips planned yet.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

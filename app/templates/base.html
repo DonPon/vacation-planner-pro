@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Vacation Planner{% endblock %}</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <!-- Frappe Gantt -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a; /* Deep slate dark background */
+            min-height: 100vh;
+            color: #f1f5f9;
+        }
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        .sidebar-item-active {
+            background: rgba(255, 255, 255, 0.1);
+            font-weight: 600;
+            border-left: 4px solid #3b82f6;
+        }
+        /* Sidebar Collapsible */
+        .sidebar {
+            width: 16rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .sidebar-collapsed {
+            width: 5rem;
+        }
+        .sidebar-collapsed .sidebar-text, 
+        .sidebar-collapsed .sidebar-logo {
+            display: none;
+        }
+        .sidebar-collapsed nav {
+            padding: 1rem 0.5rem;
+        }
+        .sidebar-collapsed .sidebar-link {
+            justify-content: center;
+            padding: 0.75rem 0;
+        }
+        .sidebar-collapsed .sidebar-link svg {
+            margin-right: 0;
+        }
+        .sidebar-collapsed .logout-text {
+            display: none;
+        }
+        .sidebar-collapsed .logout-btn {
+            justify-content: center;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body class="text-slate-200 antialiased">
+    <div class="flex h-screen overflow-hidden">
+        {% if request.session.get('user_id') %}
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar glass border-r border-white/5 flex flex-col z-20 shrink-0">
+            <div class="p-6 flex items-center justify-between">
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent sidebar-logo">
+                    FamilyPlanner
+                </h1>
+                <button onclick="toggleSidebar()" class="p-2 hover:bg-white/10 rounded-xl transition-all text-slate-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+            <nav class="flex-1 px-4 space-y-2 mt-4">
+                <a href="/dashboard" class="sidebar-link flex items-center px-4 py-3 rounded-xl transition-all hover:bg-white/5 {% if request.url.path == '/dashboard' %}sidebar-item-active{% endif %}">
+                    <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    <span class="sidebar-text">Dashboard</span>
+                </a>
+                <a href="/family" class="sidebar-link flex items-center px-4 py-3 rounded-xl transition-all hover:bg-white/5 {% if request.url.path == '/family' %}sidebar-item-active{% endif %}">
+                    <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    <span class="sidebar-text">Family</span>
+                </a>
+                <a href="/calendar" class="sidebar-link flex items-center px-4 py-3 rounded-xl transition-all hover:bg-white/5 {% if request.url.path == '/calendar' %}sidebar-item-active{% endif %}">
+                    <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <span class="sidebar-text">Timeline</span>
+                </a>
+                <a href="/settings" class="sidebar-link flex items-center px-4 py-3 rounded-xl transition-all hover:bg-white/5 {% if request.url.path == '/settings' %}sidebar-item-active{% endif %}">
+                    <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <span class="sidebar-text">Settings</span>
+                </a>
+            </nav>
+            <div class="p-4 border-t border-white/5">
+                <a href="/logout" class="logout-btn flex items-center px-4 py-3 rounded-xl text-red-400 hover:bg-red-400/10 transition-all">
+                    <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    <span class="logout-text">Logout</span>
+                </a>
+            </div>
+        </aside>
+        {% endif %}
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            {% if request.session.get('user_id') %}
+            <!-- Persistent Top Bar with Vacation Counters -->
+            <header class="glass h-24 border-b border-white/10 flex items-center px-8 z-10 shrink-0">
+                <div class="flex items-center space-x-6 overflow-x-auto no-scrollbar py-3">
+                    <div class="flex items-center mr-6">
+                        <div class="relative flex items-center justify-center mr-3">
+                            <div class="absolute w-3 h-3 bg-blue-500/20 rounded-full animate-ping"></div>
+                            <div class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
+                        </div>
+                        <span class="text-xs font-black text-white uppercase tracking-[0.4em] whitespace-nowrap">Balances</span>
+                        <div class="h-10 w-px bg-white/10 ml-8"></div>
+                    </div>
+                    {% if family_members %}
+                        {% for person in family_members %}
+                        <div class="flex items-center space-x-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 px-5 py-3 rounded-2xl transition-all duration-300 group cursor-pointer shadow-lg shadow-black/20" 
+                             onclick="window.location.href='/family/{{ person.id }}'">
+                            <div class="w-1.5 h-8 rounded-full shadow-[0_0_15px_rgba(255,255,255,0.1)]" style="background-color: {{ person.color }}"></div>
+                            <div class="flex flex-col -space-y-1">
+                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] group-hover:text-white transition-colors">{{ person.name }}</span>
+                                <div class="flex items-baseline space-x-1.5">
+                                    <span class="text-xl font-black text-white group-hover:text-blue-400 transition-colors">{{ person.remaining_balance|int }}</span>
+                                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">days left</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <span class="text-xs text-slate-500 italic">No family members added yet.</span>
+                    {% endif %}
+                </div>
+            </header>
+            {% endif %}
+
+            <main class="flex-1 overflow-y-auto p-8 relative">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- Modals Container -->
+    <div id="modal-container" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm transition-all duration-300">
+        <div id="modal-content" class="glass w-full max-w-lg rounded-3xl p-8 transform transition-all duration-300 scale-95 opacity-0">
+            <!-- HTMX will load content here -->
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('sidebar-collapsed');
+            localStorage.setItem('sidebar-collapsed', sidebar.classList.contains('sidebar-collapsed'));
+        }
+
+        // Initialize sidebar state
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar && localStorage.getItem('sidebar-collapsed') === 'true') {
+                sidebar.classList.add('sidebar-collapsed');
+            }
+        });
+
+        function openModal() {
+            const container = document.getElementById('modal-container');
+            const content = document.getElementById('modal-content');
+            container.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const container = document.getElementById('modal-container');
+            const content = document.getElementById('modal-content');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                container.classList.add('hidden');
+            }, 300);
+        }
+
+        document.addEventListener('htmx:afterSwap', (e) => {
+            if (e.detail.target.id === 'modal-content') {
+                openModal();
+            }
+        });
+
+        // Close modal on escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+    </script>
+</body>
+</html>

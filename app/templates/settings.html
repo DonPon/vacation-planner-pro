@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - FamilyPlanner{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-8">
+    <div>
+        <h1 class="text-4xl font-black text-white tracking-tighter">Settings</h1>
+        <p class="text-slate-400 font-medium mt-1">Configure your family group and default preferences.</p>
+    </div>
+
+    <div class="glass rounded-[2.5rem] overflow-hidden">
+        <form action="/settings/update" method="POST" class="p-8 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Family Group Name</label>
+                    <input type="text" name="name" value="{{ family.name }}" required
+                           class="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:ring-2 focus:ring-blue-500 transition-all font-bold">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Default Country (ISO)</label>
+                    <input type="text" name="country" value="{{ family.default_country }}" required
+                           class="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:ring-2 focus:ring-blue-500 transition-all font-bold">
+                    <p class="text-[10px] text-slate-500 font-bold ml-1 italic">Used for national holiday fetching (e.g. CH, US, MX)</p>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Default Planning Year</label>
+                    <input type="number" name="year" value="{{ family.default_year }}" required
+                           class="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:ring-2 focus:ring-blue-500 transition-all font-bold">
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-white/5 flex justify-end">
+                <button type="submit" class="px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-blue-500/20">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="glass border-red-500/20 p-8 rounded-[2.5rem] bg-red-500/5">
+        <h3 class="text-xl font-bold text-red-400">Danger Zone</h3>
+        <p class="text-slate-400 text-sm mt-1">Irreversible actions for your family account.</p>
+        
+        <div class="mt-6">
+            <button class="px-6 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-sm font-bold transition-all border border-red-500/20">
+                Delete Family Group
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}

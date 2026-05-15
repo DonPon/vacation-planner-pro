@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block title %}Timeline - FamilyPlanner{% endblock %}
+
+{% block head %}
+<style>
+    .timeline-wrapper {
+        position: relative;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 2rem;
+        background: #0f172a;
+        overflow: auto;
+        max-height: 80vh;
+    }
+
+    .timeline-container {
+        display: flex;
+        width: max-content;
+    }
+
+    .timeline-sidebar {
+        width: 200px;
+        position: sticky;
+        left: 0;
+        background: #1e293b;
+        z-index: 50;
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .timeline-sidebar-header {
+        height: 90px;
+        display: flex;
+        align-items: center;
+        padding: 0 1.5rem;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        font-weight: 800;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-size: 0.7rem;
+        position: sticky;
+        top: 0;
+        z-index: 60;
+        background: #1e293b;
+    }
+
+    .member-label {
+        height: 80px;
+        display: flex;
+        align-items: center;
+        padding: 0 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        background: #1e293b;
+    }
+
+    .timeline-grid {
+        position: relative;
+    }
+
+    .timeline-grid-header {
+        height: 90px;
+        display: flex;
+        flex-direction: column;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        position: sticky;
+        top: 0;
+        background: #0f172a;
+        z-index: 45;
+    }
+
+    .months-row {
+        height: 40px;
+        display: flex;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .month-span {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        padding-left: 1rem;
+        font-size: 0.75rem;
+        font-weight: 900;
+        color: #3b82f6;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .days-row {
+        height: 50px;
+        display: flex;
+    }
+
+    .grid-day {
+        min-width: 40px;
+        flex: 0 0 40px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-right: 1px solid rgba(255, 255, 255, 0.02);
+    }
+
+    .grid-day.weekend {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .day-num { font-size: 0.75rem; font-weight: 800; color: #f1f5f9; }
+    .day-name { font-size: 0.6rem; font-weight: 600; color: #64748b; text-transform: uppercase; }
+
+    .timeline-row {
+        height: 80px;
+        display: flex;
+        position: relative;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .timeline-row .grid-day {
+        height: 100%;
+    }
+
+    .event-bar {
+        position: absolute;
+        height: 32px;
+        top: 24px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        padding: 0 0.75rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: white;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        z-index: 5;
+    }
+
+    .event-bar:hover {
+        transform: scaleY(1.1);
+        z-index: 10;
+        filter: brightness(1.2);
+    }
+
+    .holiday-marker {
+        position: absolute;
+        height: 48px;
+        top: 16px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px dashed rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: auto;
+    }
+
+    .month-divider {
+        position: absolute;
+        top: 0;
+        height: 100%;
+        border-left: 2px solid #3b82f6;
+        z-index: 20;
+        pointer-events: none;
+    }
+
+    .month-label {
+        position: absolute;
+        top: -25px;
+        left: 5px;
+        font-size: 0.7rem;
+        font-weight: 900;
+        color: #3b82f6;
+        text-transform: uppercase;
+    }
+
+    /* Custom scrollbar for timeline */
+    .timeline-content-scroll::-webkit-scrollbar { height: 10px; }
+    .timeline-content-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+    .timeline-content-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 5px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <header class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-extrabold text-white tracking-tight">Family Timeline</h1>
+            <p class="text-slate-400 font-medium mt-1">Single-line visualization of everyone's plans.</p>
+        </div>
+        <div class="flex space-x-4">
+            <div class="flex glass p-1 rounded-xl">
+                <button onclick="scrollToToday()" class="px-4 py-2 rounded-lg text-xs font-bold transition-all hover:bg-white/10 text-blue-400">Jump to Today</button>
+            </div>
+            <button hx-get="/calendar/add-vacation" hx-target="#modal-content" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-blue-500/30 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                Plan Trip
+            </button>
+        </div>
+    </header>
+
+    <div class="timeline-wrapper glass" id="timeline-wrapper">
+        <div class="timeline-container">
+            <!-- Sticky Sidebar -->
+            <div class="timeline-sidebar">
+                <div class="timeline-sidebar-header">Family Member</div>
+                {% for member in family_members %}
+                <div class="member-label">
+                    <div class="w-2 h-8 rounded-full mr-3" style="background-color: {{ member.color }}"></div>
+                    <span class="font-bold text-white text-sm">{{ member.name }}</span>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Grid Content -->
+            <div class="timeline-grid">
+                <!-- Grid Header -->
+                <div class="timeline-grid-header">
+                    <!-- Months Row -->
+                    <div class="months-row">
+                        {% for month in months %}
+                        <div class="month-span" style="width: {{ month.days * 40 }}px">
+                            {{ month.name }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <!-- Days Row -->
+                    <div class="days-row">
+                        {% for day in timeline_days %}
+                        <div class="grid-day {% if day.is_weekend %}weekend{% endif %}" id="day-{{ day.date.isoformat() }}">
+                            <span class="day-name">{{ day.name }}</span>
+                            <span class="day-num">{{ day.date.day }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Grid Rows -->
+                {% for member in family_members %}
+                <div class="timeline-row">
+                    {% for day in timeline_days %}
+                    <div class="grid-day {% if day.is_weekend %}weekend{% endif %}"></div>
+                    {% endfor %}
+
+                    <!-- Overlays -->
+                    {% for vac in member.vacations %}
+                    <div class="event-bar" 
+                         style="background-color: {{ member.color }}; 
+                                left: {{ (vac.start_date - timeline_days[0].date).days * 40 }}px;
+                                width: {{ ((vac.end_date - vac.start_date).days + 1) * 40 }}px;"
+                         onclick="htmx.ajax('GET', '/calendar/edit-vacation/{{ vac.id }}', {target: '#modal-content', swap: 'innerHTML'})">
+                        {{ vac.title or 'Trip' }}
+                    </div>
+                    {% endfor %}
+
+                    {% for h_date, h_name in holidays_by_member[member.id].items() %}
+                    {% if h_date >= timeline_days[0].date and h_date <= timeline_days[-1].date %}
+                    <div class="holiday-marker" 
+                         style="left: {{ (h_date - timeline_days[0].date).days * 40 }}px; width: 40px;"
+                         title="Holiday: {{ h_name }}">
+                        <svg class="w-3 h-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"></path></svg>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                {% endfor %}
+                
+                <!-- Today Marker -->
+                <div id="today-marker" class="absolute top-0 bottom-0 w-0.5 bg-red-500 z-30 shadow-[0_0_10px_rgba(239,68,68,0.5)]"
+                     style="left: {{ (date.today() - timeline_days[0].date).days * 40 + 20 }}px;">
+                     <div class="absolute -top-1.5 -left-1 w-3 h-3 bg-red-500 rounded-full"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="flex space-x-8 px-4">
+        <div class="flex items-center space-x-2">
+            <div class="w-3 h-3 bg-blue-500 rounded-lg"></div>
+            <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Planned Vacation</span>
+        </div>
+        <div class="flex items-center space-x-2">
+            <div class="w-3 h-3 bg-white/5 border border-dashed border-white/20 rounded-lg"></div>
+            <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">National Holiday</span>
+        </div>
+        <div class="flex items-center space-x-2">
+            <div class="w-3 h-3 bg-white/10 rounded-lg"></div>
+            <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Weekend</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    function scrollToToday() {
+        const marker = document.getElementById('today-marker');
+        const wrapper = document.getElementById('timeline-wrapper');
+        if (marker && wrapper) {
+            // Subtract sidebar width (200px) and half the wrapper width to center
+            const scrollPos = marker.offsetLeft - (wrapper.offsetWidth / 2);
+            wrapper.scrollTo({
+                left: scrollPos,
+                behavior: 'smooth'
+            });
+        }
+    }
+
+    // Initial scroll
+    window.onload = () => {
+        setTimeout(scrollToToday, 100);
+    };
+</script>
+{% endblock %}
