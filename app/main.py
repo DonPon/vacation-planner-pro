@@ -1,33 +1,30 @@
-from fastapi import FastAPI, Request, Depends
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from starlette.middleware.sessions import SessionMiddleware
-from sqlalchemy.orm import Session
-from app.db.database import engine, Base, get_db
-from app.routers import auth, dashboard, family, calendar, settings
-from fastapi.responses import RedirectResponse, HTMLResponse
+from datetime import date
 
-# Create database tables
+from flask import Flask, redirect, render_template, session
+
+from app.db.database import Base, engine
+from app.routers.auth import auth_bp
+from app.routers.calendar import calendar_bp
+from app.routers.dashboard import dashboard_bp
+from app.routers.family import family_bp
+from app.routers.settings import settings_bp
+
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Family Vacation Planner")
+app = Flask(__name__)
+app.secret_key = "super-secret-key"
+app.url_map.strict_slashes = False
+app.jinja_env.globals["date"] = date
 
-# Session management
-app.add_middleware(SessionMiddleware, secret_key="super-secret-key", session_cookie="family_planner_session")
+app.register_blueprint(auth_bp)
+app.register_blueprint(dashboard_bp)
+app.register_blueprint(family_bp, url_prefix="/family")
+app.register_blueprint(calendar_bp, url_prefix="/calendar")
+app.register_blueprint(settings_bp, url_prefix="/settings")
 
-# Static files & Templates
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
-@app.get("/", response_class=HTMLResponse)
-async def root(request: Request):
-    if "user_id" in request.session:
-        return RedirectResponse(url="/dashboard", status_code=303)
-    from app.services.templates import templates
-    return templates.TemplateResponse(request=request, name="landing.html")
-
-# Include routers
-app.include_router(auth.router)
-app.include_router(dashboard.router)
-app.include_router(family.router)
-app.include_router(calendar.router)
-app.include_router(settings.router)
+@app.get("/")
+def root():
+    if "user_id" in session:
+        return redirect("/dashboard", code=303)
+    return render_template("landing.html")

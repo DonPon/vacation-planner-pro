@@ -1,60 +1,66 @@
-from fastapi import APIRouter, Request, Form, Depends, HTTPException
-from fastapi.responses import RedirectResponse, HTMLResponse
-from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
-from app.db.database import get_db
-from app.models.models import User
+from flask import Blueprint, redirect, render_template, request, session
 
-from app.services.templates import templates
+from app.db.database import SessionLocal
+from app.models.models import Family, User
 
-router = APIRouter(tags=["auth"])
+auth_bp = Blueprint("auth", __name__)
 
-@router.get("/login", response_class=HTMLResponse)
-async def login_page(request: Request):
-    return templates.TemplateResponse(request=request, name="login.html")
 
-@router.get("/register", response_class=HTMLResponse)
-async def register_page(request: Request):
-    return templates.TemplateResponse(request=request, name="register.html")
+@auth_bp.get("/login")
+def login_page():
+    return render_template("login.html")
 
-@router.post("/register")
-async def register(
-    request: Request, 
-    email: str = Form(...), 
-    password: str = Form(...), 
-    family_name: str = Form(...),
-    db: Session = Depends(get_db)
-):
-    # Check if user already exists
-    existing = db.query(User).filter(User.email == email).first()
-    if existing:
-        return templates.TemplateResponse(request=request, name="register.html", context={"error": "Email already registered"})
-    
-    # Create user
-    new_user = User(email=email, password=password)
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    
-    # Create initial family
-    from app.models.models import Family
-    new_family = Family(name=family_name, owner_id=new_user.id)
-    db.add(new_family)
-    db.commit()
-    
-    request.session["user_id"] = new_user.id
-    return RedirectResponse(url="/dashboard", status_code=303)
 
-@router.post("/login")
-async def login(request: Request, email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == email).first()
-    if not user or user.password != password:
-        return templates.TemplateResponse(request=request, name="login.html", context={"error": "Invalid email or password"})
-    
-    request.session["user_id"] = user.id
-    return RedirectResponse(url="/dashboard", status_code=303)
+@auth_bp.get("/register")
+def register_page():
+    return render_template("register.html")
 
-@router.get("/logout")
-async def logout(request: Request):
-    request.session.clear()
-    return RedirectResponse(url="/login", status_code=303)
+
+@auth_bp.post("/register")
+def register():
+    db = SessionLocal()
+    try:
+        email = request.form["email"]
+        password = request.form["password"]
+        family_name = request.form["family_name"]
+
+        existing = db.query(User).filter(User.email == email).first()
+        if existing:
+            return render_template("register.html", error="Email already registered")
+
+        new_user = User(email=email, password=password)
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+
+        new_family = Family(name=family_name, owner_id=new_user.id)
+        db.add(new_family)
+        db.commit()
+
+        session["user_id"] = new_user.id
+        return redirect("/dashboard", code=303)
+    finally:
+        db.close()
+
+
+@auth_bp.post("/login")
+def login():
+    db = SessionLocal()
+    try:
+        email = request.form["email"]
+        password = request.form["password"]
+
+        user = db.query(User).filter(User.email == email).first()
+        if not user or user.password != password:
+            return render_template("login.html", error="Invalid email or password")
+
+        session["user_id"] = user.id
+        return redirect("/dashboard", code=303)
+    finally:
+        db.close()
+
+
+@auth_bp.get("/logout")
+def logout():
+    session.clear()
+    return redirect("/login", code=303)

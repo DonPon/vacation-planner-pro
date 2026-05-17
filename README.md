@@ -10,7 +10,7 @@ A modern, glassmorphic vacation planning application designed for families to co
 - **HTMX Powered:** Smooth, SPA-like interactions without the complexity of modern JS frameworks.
 
 ## Tech Stack
-- **Backend:** Python (FastAPI)
+- **Backend:** Python (Flask / WSGI)
 - **Database:** SQLite (SQLAlchemy ORM)
 - **Frontend:** Jinja2, HTMX, Tailwind CSS (via CDN), Frappe Gantt
 - **Logic:** `holidays` library for regional public holiday support
@@ -37,7 +37,7 @@ A modern, glassmorphic vacation planning application designed for families to co
 
 ### Start the Server
 ```bash
-uv run uvicorn app.main:app --reload
+uv run flask --app app.main:app run --debug
 ```
 
 ### Access

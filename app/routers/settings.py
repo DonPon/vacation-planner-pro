@@ -1,42 +1,40 @@
-from fastapi import APIRouter, Request, Depends, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
-from app.db.database import get_db
+from flask import Blueprint, redirect, render_template, request, session
+
+from app.db.database import SessionLocal
 from app.models.models import Family
+from app.services.family_service import get_family_members
 
-from app.services.templates import templates
+settings_bp = Blueprint("settings", __name__)
 
-router = APIRouter(prefix="/settings", tags=["settings"])
 
-@router.get("/", response_class=HTMLResponse)
-async def settings_view(request: Request, db: Session = Depends(get_db)):
-    user_id = request.session.get("user_id")
-    if not user_id: return RedirectResponse(url="/login", status_code=303)
-    
-    from app.services.family_service import get_family_members
-    family_members = get_family_members(db, user_id)
-    
-    family = db.query(Family).filter(Family.owner_id == user_id).first()
-    return templates.TemplateResponse(request=request, name="settings.html", context={
-        "family": family,
-        "family_members": family_members
-    })
+@settings_bp.get("/")
+def settings_view():
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect("/login", code=303)
 
-@router.post("/update")
-async def update_settings(
-    request: Request,
-    name: str = Form(...),
-    country: str = Form(...),
-    year: int = Form(...),
-    db: Session = Depends(get_db)
-):
-    user_id = request.session.get("user_id")
-    family = db.query(Family).filter(Family.owner_id == user_id).first()
-    
-    family.name = name
-    family.default_country = country
-    family.default_year = year
-    db.commit()
-    
-    return RedirectResponse(url="/settings", status_code=303)
+    db = SessionLocal()
+    try:
+        family_members = get_family_members(db, user_id)
+        family = db.query(Family).filter(Family.owner_id == user_id).first()
+        return render_template("settings.html", family=family, family_members=family_members)
+    finally:
+        db.close()
+
+
+@settings_bp.post("/update")
+def update_settings():
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect("/login", code=303)
+
+    db = SessionLocal()
+    try:
+        family = db.query(Family).filter(Family.owner_id == user_id).first()
+        family.name = request.form["name"]
+        family.default_country = request.form["country"]
+        family.default_year = int(request.form["year"])
+        db.commit()
+        return redirect("/settings", code=303)
+    finally:
+        db.close()

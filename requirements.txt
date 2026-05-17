@@ -1,7 +1,5 @@
-fastapi
-uvicorn
+flask
 sqlalchemy
 jinja2
-python-multipart
 itsdangerous
 holidays
