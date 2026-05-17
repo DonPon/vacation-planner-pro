@@ -7,7 +7,7 @@
     <div class="glass w-full max-w-md rounded-[2.5rem] p-12 space-y-8">
         <div class="text-center">
             <h2 class="text-4xl font-black text-white tracking-tighter">Welcome</h2>
-            <p class="mt-4 text-slate-400 font-medium">Please enter your details to sign in.</p>
+            <p class="mt-4 text-slate-400 font-medium">Please enter your details to log in.</p>
         </div>
 
         {% if error %}
@@ -22,7 +22,7 @@
                 <input type="email" name="email" id="email" required
                     class="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl text-white focus:ring-2 focus:ring-blue-500 transition-all outline-none placeholder-slate-600"
                     placeholder="demo@example.com"
-                    value="demo@example.com">
+                    value="">
             </div>
 
             <div class="space-y-2">
@@ -30,17 +30,17 @@
                 <input type="password" name="password" id="password" required
                     class="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl text-white focus:ring-2 focus:ring-blue-500 transition-all outline-none placeholder-slate-600"
                     placeholder="••••••••"
-                    value="demo123">
+                    value="">
             </div>
 
             <button type="submit"
                 class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-500/30 active:scale-[0.98] transition-all duration-200">
-                Sign in
+                Log in
             </button>
         </form>
 
         <p class="text-center text-sm text-slate-500 font-medium">
-            Don't have an account? <span class="text-blue-400 cursor-pointer">Ask your family organizer</span>
+            Don't have an account? <a href="/register" class="text-blue-400 cursor-pointer">Register</a>
         </p>
     </div>
 </div>

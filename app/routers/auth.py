@@ -63,4 +63,4 @@ def login():
 @auth_bp.get("/logout")
 def logout():
     session.clear()
-    return redirect("/login", code=303)
+    return redirect("/", code=303)
