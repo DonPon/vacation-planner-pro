@@ -93,31 +93,41 @@ def add_vacation():
 
     db = SessionLocal()
     try:
-        member_id = int(request.form["member_id"])
-        member = (
+        member_ids = [int(member_id) for member_id in request.form.getlist("member_ids")]
+        if not member_ids:
+            return redirect("/calendar", code=303)
+
+        members = (
             db.query(FamilyMember)
             .join(Family)
-            .filter(FamilyMember.id == member_id, Family.owner_id == user_id)
-            .first()
+            .filter(FamilyMember.id.in_(member_ids), Family.owner_id == user_id)
+            .all()
         )
-        if not member:
+        members_by_id = {member.id: member for member in members}
+        valid_member_ids = [member_id for member_id in member_ids if member_id in members_by_id]
+        if not valid_member_ids:
             return redirect("/calendar", code=303)
 
         start = datetime.strptime(request.form["start_date"], "%Y-%m-%d").date()
         end = datetime.strptime(request.form["end_date"], "%Y-%m-%d").date()
-        business_days = VacationService.calculate_business_days(
-            start, end, member.country, member.subdivision, member.working_days
-        )
+        title = request.form.get("title") or None
+        notes = request.form.get("notes") or None
 
-        new_vacation = Vacation(
-            member_id=member_id,
-            start_date=start,
-            end_date=end,
-            title=request.form.get("title") or None,
-            notes=request.form.get("notes") or None,
-            business_days_spent=business_days,
-        )
-        db.add(new_vacation)
+        for member_id in valid_member_ids:
+            member = members_by_id[member_id]
+            business_days = VacationService.calculate_business_days(
+                start, end, member.country, member.subdivision, member.working_days
+            )
+            db.add(
+                Vacation(
+                    member_id=member_id,
+                    start_date=start,
+                    end_date=end,
+                    title=title,
+                    notes=notes,
+                    business_days_spent=business_days,
+                )
+            )
         db.commit()
 
         return redirect(request.headers.get("referer", "/calendar"), code=303)
