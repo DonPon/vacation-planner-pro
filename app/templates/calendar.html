@@ -191,9 +191,25 @@
             <h1 class="text-3xl font-extrabold text-white tracking-tight">Family Timeline</h1>
             <p class="text-slate-400 font-medium mt-1">Single-line visualization of everyone's plans.</p>
         </div>
-        <div class="flex space-x-4">
+        <div class="flex space-x-4 items-center">
+            <div class="flex glass p-1 rounded-xl items-center">
+                <a href="{{ url_for('calendar.calendar_view', year=prev_year) }}"
+                   aria-label="Previous year"
+                   class="px-3 py-2 rounded-lg text-sm font-bold transition-all hover:bg-white/10 text-blue-400">‹</a>
+                <form method="get" action="{{ url_for('calendar.calendar_view') }}">
+                    <select name="year" onchange="this.form.submit()" aria-label="Select year"
+                            class="bg-transparent text-sm font-extrabold text-white outline-none cursor-pointer">
+                        {% for year_option in year_options %}
+                        <option value="{{ year_option }}" class="bg-slate-900" {% if year_option == view_year %}selected{% endif %}>{{ year_option }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+                <a href="{{ url_for('calendar.calendar_view', year=next_year) }}"
+                   aria-label="Next year"
+                   class="px-3 py-2 rounded-lg text-sm font-bold transition-all hover:bg-white/10 text-blue-400">›</a>
+            </div>
             <div class="flex glass p-1 rounded-xl">
-                <button onclick="scrollToToday()" class="px-4 py-2 rounded-lg text-xs font-bold transition-all hover:bg-white/10 text-blue-400">Jump to Today</button>
+                <button onclick="goToToday()" class="px-4 py-2 rounded-lg text-xs font-bold transition-all hover:bg-white/10 text-blue-400">Jump to Today</button>
             </div>
             <button hx-get="{{ url_for('calendar.add_vacation_modal') }}" hx-target="#modal-content" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-blue-500/30 flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
@@ -246,11 +262,12 @@
                     {% endfor %}
 
                     <!-- Overlays -->
-                    {% for vac in member.vacations %}
+                    {% for bar in vacation_bars_by_member[member.id] %}
+                    {% set vac = bar.vacation %}
                     <div class="event-bar" 
                          style="background-color: {{ member.color }}; 
-                                left: {{ (vac.start_date - timeline_days[0].date).days * 40 }}px;
-                                width: {{ ((vac.end_date - vac.start_date).days + 1) * 40 }}px;"
+                                left: {{ bar.left_days * 40 }}px;
+                                width: {{ bar.width_days * 40 }}px;"
                          onclick="htmx.ajax('GET', '{{ url_for('calendar.edit_vacation_modal', vac_id=vac.id) }}', {target: '#modal-content', swap: 'innerHTML'})">
                         {{ vac.title or 'Trip' }}
                     </div>
@@ -269,10 +286,12 @@
                 {% endfor %}
                 
                 <!-- Today Marker -->
+                {% if show_today_marker %}
                 <div id="today-marker" class="absolute top-0 bottom-0 w-0.5 bg-red-500 z-30 shadow-[0_0_10px_rgba(239,68,68,0.5)]"
                      style="left: {{ (date.today() - timeline_days[0].date).days * 40 + 20 }}px;">
                      <div class="absolute -top-1.5 -left-1 w-3 h-3 bg-red-500 rounded-full"></div>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -307,9 +326,19 @@
         }
     }
 
-    // Initial scroll
+    function goToToday() {
+        {% if view_year != current_year %}
+        window.location.href = "{{ url_for('calendar.calendar_view', year=current_year) }}";
+        return;
+        {% endif %}
+        scrollToToday();
+    }
+
+    // Initial scroll (only when today is part of the visible year)
     window.onload = () => {
-        setTimeout(scrollToToday, 100);
+        if (document.getElementById('today-marker')) {
+            setTimeout(scrollToToday, 100);
+        }
     };
 </script>
 {% endblock %}

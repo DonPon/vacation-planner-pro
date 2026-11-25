@@ -9,6 +9,34 @@ from app.services.vacation_service import HolidayService, VacationService
 
 calendar_bp = Blueprint("calendar", __name__)
 
+MIN_YEAR = 1900
+MAX_YEAR = 2100
+
+
+def _selected_year(requested_year, fallback_year):
+    try:
+        year = int(requested_year)
+    except (TypeError, ValueError):
+        return fallback_year
+    return year if MIN_YEAR <= year <= MAX_YEAR else fallback_year
+
+
+def _visible_vacations(member, start_date, end_date):
+    bars = []
+    for vacation in member.vacations:
+        visible_start = max(vacation.start_date, start_date)
+        visible_end = min(vacation.end_date, end_date)
+        if visible_start > visible_end:
+            continue
+        bars.append(
+            {
+                "vacation": vacation,
+                "left_days": (visible_start - start_date).days,
+                "width_days": (visible_end - visible_start).days + 1,
+            }
+        )
+    return bars
+
 
 @calendar_bp.get("/")
 def calendar_view():
@@ -21,7 +49,9 @@ def calendar_view():
         family_members = get_family_members(db, user_id)
         family = db.query(Family).filter(Family.owner_id == user_id).first()
 
-        year = family.default_year
+        current_year = date.today().year
+        fallback_year = family.default_year or current_year
+        year = _selected_year(request.args.get("year"), fallback_year)
         start_date = date(year, 1, 1)
         end_date = date(year, 12, 31)
 
@@ -52,6 +82,11 @@ def calendar_view():
             member.id: HolidayService.get_holidays(member.country, member.subdivision, year)
             for member in family_members
         }
+        vacation_bars_by_member = {
+            member.id: _visible_vacations(member, start_date, end_date)
+            for member in family_members
+        }
+        year_options = sorted(set(range(current_year - 5, current_year + 6)) | {year})
 
         return render_template(
             "calendar.html",
@@ -60,6 +95,13 @@ def calendar_view():
             timeline_days=timeline_days,
             months=months,
             holidays_by_member=holidays_by_member,
+            vacation_bars_by_member=vacation_bars_by_member,
+            view_year=year,
+            prev_year=max(MIN_YEAR, year - 1),
+            next_year=min(MAX_YEAR, year + 1),
+            current_year=current_year,
+            year_options=year_options,
+            show_today_marker=start_date <= date.today() <= end_date,
         )
     finally:
         db.close()

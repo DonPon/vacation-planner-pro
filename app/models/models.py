@@ -1,3 +1,5 @@
+from datetime import date
+
 from sqlalchemy import Column, Integer, String, Date, ForeignKey, Float, Boolean
 from sqlalchemy.orm import relationship
 from app.db.database import Base
@@ -18,7 +20,7 @@ class Family(Base):
     name = Column(String)
     owner_id = Column(Integer, ForeignKey("users.id"))
     default_country = Column(String, default="CH")
-    default_year = Column(Integer, default=2026)
+    default_year = Column(Integer, default=lambda: date.today().year)
     
     owner = relationship("User", back_populates="families")
     members = relationship("FamilyMember", back_populates="family", cascade="all, delete-orphan")
