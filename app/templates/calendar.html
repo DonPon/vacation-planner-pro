@@ -225,8 +225,11 @@
                 <div class="timeline-sidebar-header">Family Member</div>
                 {% for member in family_members %}
                 <div class="member-label">
-                    <div class="w-2 h-8 rounded-full mr-3" style="background-color: {{ member.color }}"></div>
-                    <span class="font-bold text-white text-sm">{{ member.name }}</span>
+                    <div class="w-2 h-8 rounded-full mr-3 flex-shrink-0" style="background-color: {{ member.color }}"></div>
+                    <div class="min-w-0">
+                        <div class="font-bold text-white text-sm truncate">{{ member.name }}</div>
+                        <div class="text-[10px] font-bold text-slate-400 mt-0.5">{{ member.remaining_balance|int }} days left in {{ view_year }}</div>
+                    </div>
                 </div>
                 {% endfor %}
             </div>

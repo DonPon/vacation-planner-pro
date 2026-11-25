@@ -6,19 +6,9 @@ from app.db.database import SessionLocal
 from app.models.models import Family, FamilyMember, Vacation
 from app.services.family_service import get_family_members
 from app.services.vacation_service import HolidayService, VacationService
+from app.services.year_service import year_context
 
 calendar_bp = Blueprint("calendar", __name__)
-
-MIN_YEAR = 1900
-MAX_YEAR = 2100
-
-
-def _selected_year(requested_year, fallback_year):
-    try:
-        year = int(requested_year)
-    except (TypeError, ValueError):
-        return fallback_year
-    return year if MIN_YEAR <= year <= MAX_YEAR else fallback_year
 
 
 def _visible_vacations(member, start_date, end_date):
@@ -46,12 +36,13 @@ def calendar_view():
 
     db = SessionLocal()
     try:
-        family_members = get_family_members(db, user_id)
         family = db.query(Family).filter(Family.owner_id == user_id).first()
-
         current_year = date.today().year
-        fallback_year = family.default_year or current_year
-        year = _selected_year(request.args.get("year"), fallback_year)
+        fallback_year = (family.default_year if family else None) or current_year
+        context = year_context(request.args.get("year"), fallback_year)
+        year = context["view_year"]
+        family_members = get_family_members(db, user_id, year)
+
         start_date = date(year, 1, 1)
         end_date = date(year, 12, 31)
 
@@ -86,8 +77,6 @@ def calendar_view():
             member.id: _visible_vacations(member, start_date, end_date)
             for member in family_members
         }
-        year_options = sorted(set(range(current_year - 5, current_year + 6)) | {year})
-
         return render_template(
             "calendar.html",
             family=family,
@@ -96,12 +85,8 @@ def calendar_view():
             months=months,
             holidays_by_member=holidays_by_member,
             vacation_bars_by_member=vacation_bars_by_member,
-            view_year=year,
-            prev_year=max(MIN_YEAR, year - 1),
-            next_year=min(MAX_YEAR, year + 1),
-            current_year=current_year,
-            year_options=year_options,
             show_today_marker=start_date <= date.today() <= end_date,
+            **context,
         )
     finally:
         db.close()

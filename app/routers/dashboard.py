@@ -17,14 +17,15 @@ def dashboard():
 
     db = SessionLocal()
     try:
-        family_members = get_family_members(db, user_id)
-
         family = db.query(Family).filter(Family.owner_id == user_id).first()
         if not family:
             family = Family(name="Our Family", owner_id=user_id)
             db.add(family)
             db.commit()
             db.refresh(family)
+
+        view_year = family.default_year or date.today().year
+        family_members = get_family_members(db, user_id, view_year)
 
         today = date.today()
         upcoming_vacations = (
@@ -39,6 +40,7 @@ def dashboard():
         return render_template(
             "dashboard.html",
             family=family,
+            view_year=view_year,
             total_members=len(family_members),
             upcoming_vacations=upcoming_vacations,
             members=family_members,

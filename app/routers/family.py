@@ -1,8 +1,11 @@
+from datetime import date
+
 from flask import Blueprint, redirect, render_template, request, session, url_for
 
 from app.db.database import SessionLocal
 from app.models.models import Family, FamilyMember
-from app.services.family_service import get_family_members
+from app.services.family_service import get_family_members, vacation_days_in_year
+from app.services.year_service import year_context
 
 family_bp = Blueprint("family", __name__)
 
@@ -64,9 +67,16 @@ def family_list():
 
     db = SessionLocal()
     try:
-        family_members = get_family_members(db, user_id)
         family = db.query(Family).filter(Family.owner_id == user_id).first()
-        return render_template("family.html", members=family_members, family=family, family_members=family_members)
+        view_year = (family.default_year if family else None) or date.today().year
+        family_members = get_family_members(db, user_id, view_year)
+        return render_template(
+            "family.html",
+            members=family_members,
+            family=family,
+            family_members=family_members,
+            view_year=view_year,
+        )
     finally:
         db.close()
 
@@ -128,19 +138,29 @@ def member_details(member_id):
 
     db = SessionLocal()
     try:
-        member = (
-            db.query(FamilyMember)
-            .join(Family)
-            .filter(FamilyMember.id == member_id, Family.owner_id == user_id)
-            .first()
+        family = db.query(Family).filter(Family.owner_id == user_id).first()
+        if not family:
+            return redirect(url_for("family.family_list"), code=303)
+
+        context = year_context(
+            request.args.get("year"), family.default_year or date.today().year
         )
+        year = context["view_year"]
+        family_members = get_family_members(db, user_id, year)
+        member = next((m for m in family_members if m.id == member_id), None)
         if not member:
             return redirect(url_for("family.family_list"), code=303)
 
-        family_members = get_family_members(db, user_id)
-        spent = sum(v.business_days_spent for v in member.vacations)
-        member.remaining_balance = member.vacation_allowance - spent
+        year_trips = []
+        for vacation in member.vacations:
+            days = vacation_days_in_year(vacation, member, year)
+            if days > 0:
+                year_trips.append({"vacation": vacation, "days": days})
+        year_trips.sort(key=lambda trip: trip["vacation"].start_date, reverse=True)
+        member.year_trips = year_trips
 
-        return render_template("person.html", member=member, family_members=family_members)
+        return render_template(
+            "person.html", member=member, family_members=family_members, **context
+        )
     finally:
         db.close()
