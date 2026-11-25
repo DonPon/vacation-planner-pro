@@ -52,7 +52,7 @@ def login():
 
         user = db.query(User).filter(User.email == email).first()
         if not user or user.password != password:
-            return render_template("login.html", error="Invalid email or password")
+            return render_template("login.html", error="Invalid username or password")
 
         session["user_id"] = user.id
         return redirect("/dashboard", code=303)
