@@ -44,8 +44,67 @@ uv run flask --app app.main:app run --debug
 Open [http://localhost:8000](http://localhost:8000) in your browser.
 
 ### Demo Credentials:
-- Email: `demo@example.com`
+- Username: `demo@example.com`
 - Password: `demo123`
+
+## Deploying behind a path prefix
+
+The app builds all links with Flask's `url_for`, so it can run under a path such as
+`https://example.com/vacation-planner/`.
+
+Set these environment variables for the production process:
+
+| Variable | Purpose |
+| --- | --- |
+| `APP_PREFIX` | Path prefix, e.g. `/vacation-planner`. Leave unset for local root hosting. |
+| `SECRET_KEY` | Long random secret (required in production; do not use the dev default). |
+| `SESSION_COOKIE_NAME` | Unique cookie name so other Flask apps on the same domain do not clash (defaults to `vacationplanner_session`). |
+| `DATABASE_URL` | Absolute SQLite URL, e.g. `sqlite:////var/lib/vacation-planner/app.db`. Defaults to `app.db` next to `wsgi.py`. |
+| `PREFIX_FROM_HEADER` | Set to `1` only if your proxy strips the prefix and sends `X-Forwarded-Prefix`. |
+
+Run with gunicorn:
+
+```bash
+uv pip install gunicorn
+APP_PREFIX=/vacation-planner SECRET_KEY="$(openssl rand -hex 32)" \
+DATABASE_URL=sqlite:////var/lib/vacation-planner/app.db \
+gunicorn --workers 2 --bind 127.0.0.1:8001 wsgi:application
+```
+
+### Proxy option A (default): forward the full path
+
+nginx:
+
+```nginx
+location /vacation-planner/ {
+    proxy_pass http://127.0.0.1:8001;   # no trailing slash
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+
+`DispatcherMiddleware` in `wsgi.py` strips `/vacation-planner` before Flask sees the request,
+and generated URLs include the prefix automatically.
+
+### Proxy option B: proxy strips the prefix
+
+If your existing setup uses `proxy_pass http://127.0.0.1:8001/;` (trailing slash), set
+`PREFIX_FROM_HEADER=1` and send the prefix as a header:
+
+```nginx
+location /vacation-planner/ {
+    proxy_pass http://127.0.0.1:8001/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Prefix /vacation-planner;
+}
+```
+
+Do not set both options at once.
+
+> Never run `seed.py` against the production database: it drops all tables first.
 
 ## How It Works
 The system uses the `holidays` library to fetch official holidays for supported countries (CH, MX, DE, US, etc.). When planning time off, the system iterates through each day and only deducts from the balance if the day is:

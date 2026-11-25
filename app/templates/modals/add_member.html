@@ -5,7 +5,7 @@
     </button>
 </div>
 
-<form action="/family/add-member" method="POST" class="space-y-4">
+<form action="{{ url_for('family.add_member') }}" method="POST" class="space-y-4">
     <div class="space-y-1">
         <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
         <input type="text" name="name" required placeholder="e.g. Alice Smith"

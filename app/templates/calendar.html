@@ -195,7 +195,7 @@
             <div class="flex glass p-1 rounded-xl">
                 <button onclick="scrollToToday()" class="px-4 py-2 rounded-lg text-xs font-bold transition-all hover:bg-white/10 text-blue-400">Jump to Today</button>
             </div>
-            <button hx-get="/calendar/add-vacation" hx-target="#modal-content" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-blue-500/30 flex items-center">
+            <button hx-get="{{ url_for('calendar.add_vacation_modal') }}" hx-target="#modal-content" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-blue-500/30 flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                 Plan Trip
             </button>
@@ -251,7 +251,7 @@
                          style="background-color: {{ member.color }}; 
                                 left: {{ (vac.start_date - timeline_days[0].date).days * 40 }}px;
                                 width: {{ ((vac.end_date - vac.start_date).days + 1) * 40 }}px;"
-                         onclick="htmx.ajax('GET', '/calendar/edit-vacation/{{ vac.id }}', {target: '#modal-content', swap: 'innerHTML'})">
+                         onclick="htmx.ajax('GET', '{{ url_for('calendar.edit_vacation_modal', vac_id=vac.id) }}', {target: '#modal-content', swap: 'innerHTML'})">
                         {{ vac.title or 'Trip' }}
                     </div>
                     {% endfor %}

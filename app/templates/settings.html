@@ -10,7 +10,7 @@
     </div>
 
     <div class="glass rounded-[2.5rem] overflow-hidden">
-        <form action="/settings/update" method="POST" class="p-8 space-y-6">
+        <form action="{{ url_for('settings.update_settings') }}" method="POST" class="p-8 space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="space-y-2">
                     <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Family Group Name</label>

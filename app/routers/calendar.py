@@ -1,6 +1,6 @@
 from datetime import date, datetime, timedelta
 
-from flask import Blueprint, redirect, render_template, request, session
+from flask import Blueprint, redirect, render_template, request, session, url_for
 
 from app.db.database import SessionLocal
 from app.models.models import Family, FamilyMember, Vacation
@@ -14,7 +14,7 @@ calendar_bp = Blueprint("calendar", __name__)
 def calendar_view():
     user_id = session.get("user_id")
     if not user_id:
-        return redirect("/login", code=303)
+        return redirect(url_for("auth.login_page"), code=303)
 
     db = SessionLocal()
     try:
@@ -69,7 +69,7 @@ def calendar_view():
 def add_vacation_modal():
     user_id = session.get("user_id")
     if not user_id:
-        return redirect("/login", code=303)
+        return redirect(url_for("auth.login_page"), code=303)
 
     db = SessionLocal()
     try:
@@ -89,13 +89,13 @@ def add_vacation_modal():
 def add_vacation():
     user_id = session.get("user_id")
     if not user_id:
-        return redirect("/login", code=303)
+        return redirect(url_for("auth.login_page"), code=303)
 
     db = SessionLocal()
     try:
         member_ids = [int(member_id) for member_id in request.form.getlist("member_ids")]
         if not member_ids:
-            return redirect("/calendar", code=303)
+            return redirect(url_for("calendar.calendar_view"), code=303)
 
         members = (
             db.query(FamilyMember)
@@ -106,7 +106,7 @@ def add_vacation():
         members_by_id = {member.id: member for member in members}
         valid_member_ids = [member_id for member_id in member_ids if member_id in members_by_id]
         if not valid_member_ids:
-            return redirect("/calendar", code=303)
+            return redirect(url_for("calendar.calendar_view"), code=303)
 
         start = datetime.strptime(request.form["start_date"], "%Y-%m-%d").date()
         end = datetime.strptime(request.form["end_date"], "%Y-%m-%d").date()
@@ -130,7 +130,10 @@ def add_vacation():
             )
         db.commit()
 
-        return redirect(request.headers.get("referer", "/calendar"), code=303)
+        return redirect(
+            request.headers.get("referer") or url_for("calendar.calendar_view"),
+            code=303,
+        )
     finally:
         db.close()
 
@@ -139,7 +142,7 @@ def add_vacation():
 def edit_vacation_modal(vac_id):
     user_id = session.get("user_id")
     if not user_id:
-        return redirect("/login", code=303)
+        return redirect(url_for("auth.login_page"), code=303)
 
     db = SessionLocal()
     try:
@@ -164,7 +167,7 @@ def edit_vacation_modal(vac_id):
 def update_vacation(vac_id):
     user_id = session.get("user_id")
     if not user_id:
-        return redirect("/login", code=303)
+        return redirect(url_for("auth.login_page"), code=303)
 
     db = SessionLocal()
     try:
@@ -176,7 +179,7 @@ def update_vacation(vac_id):
             .first()
         )
         if not vacation:
-            return redirect("/calendar", code=303)
+            return redirect(url_for("calendar.calendar_view"), code=303)
 
         member_id = int(request.form["member_id"])
         member = (
@@ -186,7 +189,7 @@ def update_vacation(vac_id):
             .first()
         )
         if not member:
-            return redirect("/calendar", code=303)
+            return redirect(url_for("calendar.calendar_view"), code=303)
 
         start = datetime.strptime(request.form["start_date"], "%Y-%m-%d").date()
         end = datetime.strptime(request.form["end_date"], "%Y-%m-%d").date()
@@ -202,7 +205,10 @@ def update_vacation(vac_id):
         vacation.business_days_spent = business_days
         db.commit()
 
-        return redirect(request.headers.get("referer", "/calendar"), code=303)
+        return redirect(
+            request.headers.get("referer") or url_for("calendar.calendar_view"),
+            code=303,
+        )
     finally:
         db.close()
 

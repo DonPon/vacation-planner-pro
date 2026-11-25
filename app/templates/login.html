@@ -16,7 +16,7 @@
         </div>
         {% endif %}
 
-        <form action="/login" method="POST" class="space-y-6">
+        <form action="{{ url_for('auth.login') }}" method="POST" class="space-y-6">
             <div class="space-y-2">
                 <label for="email" class="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Username</label>
                 <input type="text" name="email" id="email" required
@@ -40,7 +40,7 @@
         </form>
 
         <p class="text-center text-sm text-slate-500 font-medium">
-            Don't have an account? <a href="/register" class="text-blue-400 cursor-pointer">Register</a>
+            Don't have an account? <a href="{{ url_for('auth.register_page') }}" class="text-blue-400 cursor-pointer">Register</a>
         </p>
     </div>
 </div>

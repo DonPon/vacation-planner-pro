@@ -5,7 +5,7 @@
     </button>
 </div>
 
-<form action="/calendar/update-vacation/{{ vacation.id }}" method="POST" class="space-y-4">
+<form action="{{ url_for('calendar.update_vacation', vac_id=vacation.id) }}" method="POST" class="space-y-4">
     <div class="space-y-1">
         <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Family Member</label>
         <div class="relative">
@@ -46,7 +46,7 @@
     </div>
 
     <div class="pt-4 flex space-x-3">
-        <button type="button" onclick="deleteVacation('vac-{{ vacation.id }}')" class="px-6 py-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-2xl font-bold transition-all border border-red-500/20">
+        <button type="button" onclick="deleteVacation('{{ url_for('calendar.delete_vacation', vac_id=vacation.id) }}')" class="px-6 py-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-2xl font-bold transition-all border border-red-500/20">
             Delete
         </button>
         <button type="submit" class="flex-1 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-blue-500/20">
@@ -56,10 +56,9 @@
 </form>
 
 <script>
-    async function deleteVacation(taskId) {
+    async function deleteVacation(url) {
         if (!confirm("Are you sure you want to delete this trip?")) return;
-        const vacId = taskId.split('-')[1];
-        const resp = await fetch(`/calendar/vacation/${vacId}`, { method: 'DELETE' });
+        const resp = await fetch(url, { method: 'DELETE' });
         if (resp.ok) {
             closeModal();
             window.location.reload();

@@ -5,7 +5,7 @@
     </button>
 </div>
 
-<form action="/calendar/add-vacation" method="POST" class="space-y-4">
+<form action="{{ url_for('calendar.add_vacation') }}" method="POST" class="space-y-4">
     <div class="space-y-1">
         <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Family Members</label>
         <div class="relative">

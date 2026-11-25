@@ -63,8 +63,8 @@
             FamilyPlanner
         </h1>
         <div class="flex items-center space-x-8">
-            <a href="/login" class="text-sm font-bold text-slate-400 hover:text-white transition-colors">Log In</a>
-            <a href="/register" class="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-white text-sm font-bold transition-all">
+            <a href="{{ url_for('auth.login_page') }}" class="text-sm font-bold text-slate-400 hover:text-white transition-colors">Log In</a>
+            <a href="{{ url_for('auth.register_page') }}" class="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-white text-sm font-bold transition-all">
                 Get Started
             </a>
         </div>
@@ -86,7 +86,7 @@
             The ultimate timeline for families. Sync schedules, track holiday balances, and visual planning across 50+ countries.
         </p>
         <div class="pt-8 flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-6">
-            <a href="/register" class="px-10 py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-[2rem] font-bold text-lg transition-all shadow-2xl shadow-blue-500/20 hover:scale-105 active:scale-95">
+            <a href="{{ url_for('auth.register_page') }}" class="px-10 py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-[2rem] font-bold text-lg transition-all shadow-2xl shadow-blue-500/20 hover:scale-105 active:scale-95">
                 Start Planning Now
             </a>
             <p class="text-slate-500 font-bold text-sm italic">Just $5/month. Cancel anytime.</p>
@@ -267,7 +267,7 @@
                     </div>
                 </div>
 
-                <a href="/register" class="block w-full py-6 bg-blue-600 hover:bg-blue-700 text-white rounded-[2rem] font-black text-xl transition-all shadow-xl shadow-blue-500/20">
+                <a href="{{ url_for('auth.register_page') }}" class="block w-full py-6 bg-blue-600 hover:bg-blue-700 text-white rounded-[2rem] font-black text-xl transition-all shadow-xl shadow-blue-500/20">
                     Get Started with Pro
                 </a>
                 <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">30-day money back guarantee</p>

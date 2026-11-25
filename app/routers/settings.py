@@ -1,4 +1,4 @@
-from flask import Blueprint, redirect, render_template, request, session
+from flask import Blueprint, redirect, render_template, request, session, url_for
 
 from app.db.database import SessionLocal
 from app.models.models import Family
@@ -11,7 +11,7 @@ settings_bp = Blueprint("settings", __name__)
 def settings_view():
     user_id = session.get("user_id")
     if not user_id:
-        return redirect("/login", code=303)
+        return redirect(url_for("auth.login_page"), code=303)
 
     db = SessionLocal()
     try:
@@ -26,7 +26,7 @@ def settings_view():
 def update_settings():
     user_id = session.get("user_id")
     if not user_id:
-        return redirect("/login", code=303)
+        return redirect(url_for("auth.login_page"), code=303)
 
     db = SessionLocal()
     try:
@@ -35,6 +35,6 @@ def update_settings():
         family.default_country = request.form["country"]
         family.default_year = int(request.form["year"])
         db.commit()
-        return redirect("/settings", code=303)
+        return redirect(url_for("settings.settings_view"), code=303)
     finally:
         db.close()

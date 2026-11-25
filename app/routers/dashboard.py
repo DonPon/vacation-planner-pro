@@ -1,6 +1,6 @@
 from datetime import date
 
-from flask import Blueprint, redirect, render_template, session
+from flask import Blueprint, redirect, render_template, session, url_for
 
 from app.db.database import SessionLocal
 from app.models.models import Family, FamilyMember, Vacation
@@ -13,7 +13,7 @@ dashboard_bp = Blueprint("dashboard", __name__)
 def dashboard():
     user_id = session.get("user_id")
     if not user_id:
-        return redirect("/login", code=303)
+        return redirect(url_for("auth.login_page"), code=303)
 
     db = SessionLocal()
     try:

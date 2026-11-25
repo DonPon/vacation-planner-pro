@@ -1,4 +1,4 @@
-from flask import Blueprint, redirect, render_template, request, session
+from flask import Blueprint, redirect, render_template, request, session, url_for
 
 from app.db.database import SessionLocal
 from app.models.models import Family, FamilyMember
@@ -60,7 +60,7 @@ def country_data():
 def family_list():
     user_id = session.get("user_id")
     if not user_id:
-        return redirect("/login", code=303)
+        return redirect(url_for("auth.login_page"), code=303)
 
     db = SessionLocal()
     try:
@@ -80,7 +80,7 @@ def add_member_modal():
 def add_member():
     user_id = session.get("user_id")
     if not user_id:
-        return redirect("/login", code=303)
+        return redirect(url_for("auth.login_page"), code=303)
 
     db = SessionLocal()
     try:
@@ -96,7 +96,7 @@ def add_member():
         )
         db.add(new_member)
         db.commit()
-        return redirect("/family", code=303)
+        return redirect(url_for("family.family_list"), code=303)
     finally:
         db.close()
 
@@ -124,7 +124,7 @@ def delete_member(member_id):
 def member_details(member_id):
     user_id = session.get("user_id")
     if not user_id:
-        return redirect("/login", code=303)
+        return redirect(url_for("auth.login_page"), code=303)
 
     db = SessionLocal()
     try:
@@ -135,7 +135,7 @@ def member_details(member_id):
             .first()
         )
         if not member:
-            return redirect("/family", code=303)
+            return redirect(url_for("family.family_list"), code=303)
 
         family_members = get_family_members(db, user_id)
         spent = sum(v.business_days_spent for v in member.vacations)

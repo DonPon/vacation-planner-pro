@@ -1,4 +1,4 @@
-from flask import Blueprint, redirect, render_template, request, session
+from flask import Blueprint, redirect, render_template, request, session, url_for
 
 from app.db.database import SessionLocal
 from app.models.models import Family, User
@@ -26,7 +26,7 @@ def register():
 
         existing = db.query(User).filter(User.email == email).first()
         if existing:
-            return render_template("register.html", error="Email already registered")
+            return render_template("register.html", error="Username already registered")
 
         new_user = User(email=email, password=password)
         db.add(new_user)
@@ -38,7 +38,7 @@ def register():
         db.commit()
 
         session["user_id"] = new_user.id
-        return redirect("/dashboard", code=303)
+        return redirect(url_for("dashboard.dashboard"), code=303)
     finally:
         db.close()
 
@@ -55,7 +55,7 @@ def login():
             return render_template("login.html", error="Invalid username or password")
 
         session["user_id"] = user.id
-        return redirect("/dashboard", code=303)
+        return redirect(url_for("dashboard.dashboard"), code=303)
     finally:
         db.close()
 
@@ -63,4 +63,4 @@ def login():
 @auth_bp.get("/logout")
 def logout():
     session.clear()
-    return redirect("/", code=303)
+    return redirect(url_for("root"), code=303)
